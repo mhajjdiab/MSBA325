@@ -88,11 +88,14 @@ else:
         elif plot == "Heatmap":
             st.header("Heatmap")
             #user picks which variables they want to plot a heatmap for and plot the heatmap
-            num_vars_plot = st.sidebar.multiselect("Pick the variables (an error will occur until you pick at least one variable)",["air_pollution","indoor_air_pollution","outdoor_particulate_matter","outdoor_ozone_pollution"])
-            st.write(sns.heatmap(data[num_vars_plot].corr(), annot = True))
-            plt.title("Heatmap " , fontsize=15)
-            st.set_option('deprecation.showPyplotGlobalUse', False)
-            st.pyplot()
+            num_vars_plot = st.sidebar.multiselect("Pick the variables",["air_pollution","indoor_air_pollution","outdoor_particulate_matter","outdoor_ozone_pollution"])
+            if len(num_vars_plot) == 0:
+                st.warning("Add at least one variable")
+            else :
+                st.write(sns.heatmap(data[num_vars_plot].corr(), annot = True))
+                plt.title("Heatmap " , fontsize=15)
+                st.set_option('deprecation.showPyplotGlobalUse', False)
+                st.pyplot()
                             
                 
         elif plot == "Lineplot":
@@ -102,44 +105,53 @@ else:
             #filter rows according to that country
             data1 = data[data["country"]==country_filter]
             #users selects the variables they want to show on the lineplot 
-            line_vars = st.sidebar.multiselect("Pick the variables (an error wil occur until you pick at least one variable)",["air_pollution","indoor_air_pollution","outdoor_particulate_matter","outdoor_ozone_pollution"])
-            #plotting and specifying the x axis and y axis range
-            fig = px.line(data1, x="year", y=line_vars)
-            #x axis range depends on the maximum value of air pollution deaths since it varies for each country
-            fig.update_yaxes(range=[0, max(data1["air_pollution"])+20])
-            fig.update_xaxes(range=[1990, 2018])
-            st.plotly_chart(fig)
+            line_vars = st.sidebar.multiselect("Pick the variables",["air_pollution","indoor_air_pollution","outdoor_particulate_matter","outdoor_ozone_pollution"])
+            if len(line_vars) == 0:
+                st.warning("Add at least one variable")
+            else :
+                #plotting and specifying the x axis and y axis range
+                fig = px.line(data1, x="year", y=line_vars)
+                #x axis range depends on the maximum value of air pollution deaths since it varies for each country
+                fig.update_yaxes(range=[0, max(data1["air_pollution"])+20])
+                fig.update_xaxes(range=[1990, 2018])
+                st.plotly_chart(fig)
 
         elif plot == "Barchart":
             st.header("Bar Chart")
             #user picks countries and year needed and filter the rows accordingly 
             country_filter = st.sidebar.multiselect('Countries', data.country.unique())
             year = st.sidebar.slider('What year do you want to check the best', int(data.year.unique()[0]), int(data.year.unique()[len(data.year.unique())-1]))
-            data1 = data[data['year']==year]
-            data1 = data1[data1.country.isin(country_filter)]
-            #plot a bar chart
-            fig = go.Figure(data=[
-            go.Bar(name='Air Pollution', x=data1['country'], y=data1['air_pollution']),
-            go.Bar(name='Indoor Air Pollution', x=data1['country'], y=data1['outdoor_particulate_matter']),
-            go.Bar(name='Outdoor Particulate Matter', x=data1['country'], y=data1['outdoor_ozone_pollution']),
-            go.Bar(name='Outdoor Ozone Pollution', x=data1['country'], y=data1['indoor_air_pollution'])])
-            st.plotly_chart(fig)
-            
+            if len(country_filter) == 0:
+                st.warning("Add at least one country")
+            else :
+                data1 = data[data['year']==year]
+                data1 = data1[data1.country.isin(country_filter)]
+                #plot a bar chart
+                fig = go.Figure(data=[
+                go.Bar(name='Air Pollution', x=data1['country'], y=data1['air_pollution']),
+                go.Bar(name='Indoor Air Pollution', x=data1['country'], y=data1['outdoor_particulate_matter']),
+                go.Bar(name='Outdoor Particulate Matter', x=data1['country'], y=data1['outdoor_ozone_pollution']),
+                go.Bar(name='Outdoor Ozone Pollution', x=data1['country'], y=data1['indoor_air_pollution'])])
+                st.plotly_chart(fig)
+
             
             
         elif plot == "Animated Barchart":
             st.header("Animated Bar Chart")
             #user selects the countries to filter the rows accordingle 
-            country_filter = st.sidebar.multiselect('Countries (an error will occur until you pick at least one country)', data.country.unique())
+            country_filter = st.sidebar.multiselect('Countries', data.country.unique())
             #user picks variable that they want to plot
             var = st.sidebar.selectbox("Variable that you want to check",["air_pollution","indoor_air_pollution",
                                                                   "outdoor_particulate_matter","outdoor_ozone_pollution"])
-            data1 = data[data.country.isin(country_filter)]
-            #plotting a barchart and animating it with respect to the years
-            fig = px.bar(data1, x=data1["country"], y=data1[var], color=data1["country"],
-                         animation_frame="year", animation_group="country", range_y=[0,max(data1[var])+20])
-            st.plotly_chart(fig)
-            
+            if len(country_filter) == 0:
+                st.warning("Add at least one country")
+            else :
+                data1 = data[data.country.isin(country_filter)]
+                #plotting a barchart and animating it with respect to the years
+                fig = px.bar(data1, x=data1["country"], y=data1[var], color=data1["country"],
+                             animation_frame="year", animation_group="country", range_y=[0,max(data1[var])+20])
+                st.plotly_chart(fig)
+
     elif purpose == 'Explore data':
         st.title("Explore your data")
         if st.checkbox('Show dataset'):
